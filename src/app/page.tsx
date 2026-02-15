@@ -27,7 +27,7 @@ export default function Home() {
       {showExportReminder && (
         <a
           href="/settings"
-          className="block mb-3 px-4 py-3 rounded-lg bg-amber-900/30 border border-amber-700/50 text-sm text-amber-300"
+          className="block mb-3 px-4 py-3 rounded-lg bg-amber-900/40 border border-amber-600/50 text-sm text-amber-200"
         >
           {daysSinceExport === null
             ? "You haven't backed up your data yet. Tap to export."

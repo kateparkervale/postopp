@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PostOpp
+
+Quick symptom tracking for veterans. Log symptoms in 2-3 taps, track pain over time, and export reports for your doctor.
+
+## What It Does
+
+- **2-tap logging** — Open app, tap symptom, rate pain, done
+- **4 symptoms on home screen** — Customizable from 16 veteran-specific defaults or create your own
+- **Pain scale 1-10** — Large, color-coded buttons designed for ease of use
+- **GPS + timestamp** — Every log captures when and where symptoms occur
+- **Follow-up reminders** — Push notifications ask "How is it now?" after 30min/1hr/2hr
+- **Trends & charts** — SVG pain charts per symptom over week/month/3 months
+- **PDF export** — Generate a CONFIDENTIAL symptom report for doctor visits
+- **JSON backup** — Export/import data to transfer between devices
+- **Works offline** — PWA with service worker caching, installable on any device
+
+## Privacy & Security
+
+PostOpp is designed with veteran health data privacy as the top priority:
+
+- **Local-only storage** — All data stays on your device. No accounts, no cloud, no servers
+- **AES-256-GCM encryption** — Every symptom log is encrypted before touching IndexedDB
+- **Optional PIN lock** — 4-digit PIN with PBKDF2 hashing and brute-force lockout
+- **No analytics or tracking** — Zero telemetry, zero third-party scripts
+- **HIPAA-exempt** — No covered entity, no cloud storage. Regulated by FTC Health Breach Notification Rule
+- **Security headers** — HSTS, X-Frame-Options, CSP, Referrer-Policy, Permissions-Policy
+
+## Tech Stack
+
+- **Next.js 16** (App Router, static export)
+- **TypeScript**
+- **Tailwind CSS v4**
+- **Dexie.js** (IndexedDB)
+- **Web Crypto API** (AES-256-GCM, PBKDF2)
+- **jsPDF** (PDF generation)
+- **Vitest** (unit tests)
+- **Vercel** (hosting)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+git clone https://github.com/kateparkervale/postopp.git
+cd postopp
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build & Deploy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build     # Static export to /out
+npm test          # Run unit tests
+npx vercel --prod # Deploy to Vercel
+```
 
-## Learn More
+## Default Symptoms
 
-To learn more about Next.js, take a look at the following resources:
+PTSD, Migraine, Hip Pain, Sinus Infection, Back Pain, Knee Pain, Tinnitus, Anxiety, Depression, Insomnia, GI Issues, Shoulder Pain, Neck Pain, Fatigue, Dizziness, Headache
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Users can also create custom symptoms with their own name, icon, and color.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Medical Disclaimer
 
-## Deploy on Vercel
+**PostOpp is NOT a medical device.** It does not diagnose, treat, or prevent any medical condition. PostOpp is a personal symptom tracker only. Always consult your VA medical team or healthcare provider for medical decisions.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**If you are experiencing a medical emergency, call 911. For the Veterans Crisis Line, dial 988 and press 1.**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+Open source. See repository for license details.

@@ -22,7 +22,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
         <div className="bg-white/5 rounded-2xl p-6 mb-6 space-y-4">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
+            <span className="text-2xl" aria-hidden="true">⚠️</span>
             <div>
               <h2 className="font-bold text-lg">Not a Medical Device</h2>
               <p className="text-sm text-gray-300">
@@ -34,7 +34,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           </div>
 
           <div className="flex items-start gap-3">
-            <span className="text-2xl">🩺</span>
+            <span className="text-2xl" aria-hidden="true">🩺</span>
             <div>
               <h2 className="font-bold">Always Consult Your Doctor</h2>
               <p className="text-sm text-gray-300">
@@ -45,7 +45,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           </div>
 
           <div className="flex items-start gap-3">
-            <span className="text-2xl">🔒</span>
+            <span className="text-2xl" aria-hidden="true">🔒</span>
             <div>
               <h2 className="font-bold">Your Data Stays on Your Device</h2>
               <p className="text-sm text-gray-300">
@@ -56,7 +56,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           </div>
 
           <div className="flex items-start gap-3">
-            <span className="text-2xl">📍</span>
+            <span className="text-2xl" aria-hidden="true">📍</span>
             <div>
               <h2 className="font-bold">GPS Location</h2>
               <p className="text-sm text-gray-300">

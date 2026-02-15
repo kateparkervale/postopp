@@ -33,7 +33,7 @@ function FollowUpContent() {
 
   if (!log || !symptom) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen" role="status" aria-busy="true">
         <p className="text-xl text-gray-400">Loading...</p>
       </div>
     );

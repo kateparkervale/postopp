@@ -28,8 +28,8 @@ export default function LogConfirmation({
       role="alert"
       aria-live="assertive"
     >
-      <div className="text-7xl mb-4">✓</div>
-      <div className="text-3xl font-bold text-white mb-2">Logged!</div>
+      <div className="text-7xl mb-4" aria-hidden="true">✓</div>
+      <div className="text-3xl font-bold text-white mb-2">Symptom logged successfully</div>
       <div className="text-xl text-gray-300">
         {symptomName} &middot; Level {painLevel}
       </div>

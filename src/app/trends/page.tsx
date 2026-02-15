@@ -56,6 +56,7 @@ export default function TrendsPage() {
             className={`flex-1 py-2 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white ${
               range === r ? "bg-white text-black" : "bg-white/10"
             }`}
+            aria-pressed={range === r}
           >
             {RANGE_LABELS[r]}
           </button>
@@ -158,7 +159,8 @@ function SymptomChart({
       </div>
 
       {points.length > 1 ? (
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-20" preserveAspectRatio="none">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-20" preserveAspectRatio="none" role="img" aria-label={`${name} pain trend chart. Average ${avg.toFixed(1)} out of 10, ${entries.length} entries.`}>
+          <title>{name} pain over time</title>
           {/* Grid lines */}
           {[1, 5, 10].map((level) => {
             const y = PAD + (1 - (level - 1) / 9) * (H - PAD * 2);

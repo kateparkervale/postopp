@@ -141,15 +141,17 @@ export default function SettingsPage() {
                         backgroundColor: isActive ? s.color : "rgba(255,255,255,0.05)",
                         opacity: isActive ? 1 : 0.6,
                       }}
+                      aria-pressed={isActive}
+                      aria-label={`${s.shortName}${isActive ? ", selected" : ""}`}
                     >
-                      <span>{s.icon}</span>
+                      <span aria-hidden="true">{s.icon}</span>
                       <span className="text-sm font-medium">{s.shortName}</span>
-                      {isActive && <span className="ml-auto">✓</span>}
+                      {isActive && <span className="ml-auto" aria-hidden="true">✓</span>}
                     </button>
                     {isCustom && !isActive && (
                       <button
                         onClick={() => deleteCustomSymptom(s.id)}
-                        className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center"
+                        className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-red-600 text-white text-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white"
                         aria-label={`Delete ${s.shortName}`}
                       >
                         ×
@@ -169,7 +171,9 @@ export default function SettingsPage() {
               </button>
             ) : (
               <div className="mt-3 p-4 rounded-lg bg-white/5 border border-gray-600">
+                <label htmlFor="custom-symptom-name" className="sr-only">Symptom name</label>
                 <input
+                  id="custom-symptom-name"
                   type="text"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
@@ -184,9 +188,11 @@ export default function SettingsPage() {
                       <button
                         key={icon}
                         onClick={() => setCustomIcon(icon)}
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${
+                        className={`w-11 h-11 rounded-lg flex items-center justify-center text-lg ${
                           customIcon === icon ? "bg-white/20 ring-2 ring-white" : "bg-white/5"
                         }`}
+                        aria-label={`Icon ${icon}`}
+                        aria-pressed={customIcon === icon}
                       >
                         {icon}
                       </button>
@@ -200,10 +206,12 @@ export default function SettingsPage() {
                       <button
                         key={color}
                         onClick={() => setCustomColor(color)}
-                        className={`w-10 h-10 rounded-lg ${
+                        className={`w-11 h-11 rounded-lg ${
                           customColor === color ? "ring-2 ring-white" : ""
                         }`}
                         style={{ backgroundColor: color }}
+                        aria-label={`Color ${color}`}
+                        aria-pressed={customColor === color}
                       />
                     ))}
                   </div>
@@ -316,8 +324,9 @@ export default function SettingsPage() {
         </div>
         {showPinSetup && (
           <div className="p-4 rounded-lg bg-white/5 mb-3">
-            <p className="text-sm text-gray-400 mb-2">Enter a 4-digit PIN:</p>
+            <label htmlFor="pin-input" className="text-sm text-gray-400 mb-2 block">Enter a 4-digit PIN:</label>
             <input
+              id="pin-input"
               type="password"
               inputMode="numeric"
               maxLength={4}
@@ -419,11 +428,13 @@ export default function SettingsPage() {
               e.target.value = "";
             }}
           />
-          {importStatus && (
-            <p className={`text-sm ${importStatus.startsWith("Import failed") ? "text-red-400" : "text-green-400"}`}>
-              {importStatus}
-            </p>
-          )}
+          <div aria-live="polite" role="status">
+            {importStatus && (
+              <p className={`text-sm ${importStatus.startsWith("Import failed") ? "text-red-400" : "text-green-400"}`}>
+                {importStatus}
+              </p>
+            )}
+          </div>
           <p className="text-xs text-gray-500">
             Backups include all symptom logs with GPS and timestamps. Use this to transfer data between devices.
           </p>
@@ -440,7 +451,9 @@ export default function SettingsPage() {
             <p className="text-sm text-red-300 mb-3">
               This will permanently delete all your logs. Type DELETE to confirm.
             </p>
+            <label htmlFor="clear-confirm" className="sr-only">Type DELETE to confirm</label>
             <input
+              id="clear-confirm"
               type="text"
               value={clearText}
               onChange={(e) => setClearText(e.target.value)}

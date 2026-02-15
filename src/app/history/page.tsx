@@ -60,8 +60,10 @@ export default function HistoryPage() {
               style={{
                 backgroundColor: filter === id ? symptom.color : "rgba(255,255,255,0.1)",
               }}
+              aria-pressed={filter === id}
+              aria-label={`Filter by ${symptom.shortName}`}
             >
-              {symptom.icon} {symptom.shortName}
+              <span aria-hidden="true">{symptom.icon}</span> {symptom.shortName}
             </button>
           );
         })}
