@@ -2,19 +2,19 @@
 
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/db/database";
-import { getSymptomById, SYMPTOM_CATALOG } from "@/db/symptoms";
+import { getSymptomById } from "@/db/symptoms";
 import { getPainColor } from "@/lib/constants";
 import { exportToPdf } from "@/lib/pdf-export";
+import { getAllLogs } from "@/db/queries";
+import type { SymptomLog } from "@/types";
 
 export default function HistoryPage() {
   const [filter, setFilter] = useState<string | null>(null);
 
   const logs = useLiveQuery(async () => {
-    let query = db.logs.orderBy("timestamp").reverse();
-    const results = await query.toArray();
-    if (filter) return results.filter((l) => l.symptomId === filter);
-    return results;
+    const allLogs = await getAllLogs();
+    if (filter) return allLogs.filter((l) => l.symptomId === filter);
+    return allLogs;
   }, [filter]);
 
   const grouped = groupByDate(logs ?? []);
@@ -87,6 +87,11 @@ export default function HistoryPage() {
                   <span className="text-2xl">{symptom.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium">{symptom.shortName}</div>
+                    {log.latitude !== null && (
+                      <div className="text-xs text-gray-500">
+                        📍 {log.latitude.toFixed(4)}, {log.longitude!.toFixed(4)}
+                      </div>
+                    )}
                     {log.followUpPainLevel !== null && (
                       <div className="text-sm text-gray-400">
                         Follow-up:{" "}
@@ -120,9 +125,9 @@ export default function HistoryPage() {
 }
 
 function groupByDate(
-  logs: import("@/types").SymptomLog[]
-): Record<string, import("@/types").SymptomLog[]> {
-  const groups: Record<string, import("@/types").SymptomLog[]> = {};
+  logs: SymptomLog[]
+): Record<string, SymptomLog[]> {
+  const groups: Record<string, SymptomLog[]> = {};
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);

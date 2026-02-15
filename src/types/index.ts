@@ -28,6 +28,13 @@ export interface SymptomLog {
   notes: string;
 }
 
+// Encrypted version stored in IndexedDB
+export interface EncryptedSymptomLog {
+  id?: number;
+  encryptedData: string; // AES-256-GCM encrypted JSON of SymptomLog fields
+  timestamp: number; // kept unencrypted for indexing/sorting
+}
+
 export interface UserSettings {
   id: number;
   activeSymptomIds: string[];
@@ -35,4 +42,8 @@ export interface UserSettings {
   followUpDelayMinutes: number;
   installedAt: number | null;
   lastExportDate: number | null;
+  pinHash: string | null; // PBKDF2 hash if PIN enabled
+  pinEnabled: boolean;
+  encryptionKey: string; // auto-generated device key (used when no PIN)
+  onboardingCompleted: boolean;
 }

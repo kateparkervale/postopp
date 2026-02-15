@@ -1,21 +1,36 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { SymptomLog, UserSettings } from "@/types";
+import type { EncryptedSymptomLog, UserSettings } from "@/types";
 import { DEFAULT_ACTIVE_IDS } from "./symptoms";
+import { generateDeviceKey } from "@/lib/crypto";
 
 const db = new Dexie("PostOpp") as Dexie & {
-  logs: EntityTable<SymptomLog, "id">;
+  logs: EntityTable<EncryptedSymptomLog, "id">;
   settings: EntityTable<UserSettings, "id">;
 };
 
-db.version(1).stores({
-  logs: "++id, symptomId, timestamp, [symptomId+timestamp]",
+db.version(2).stores({
+  logs: "++id, timestamp",
   settings: "id",
 });
 
 export async function initializeSettings(): Promise<UserSettings> {
   const existing = await db.settings.get(1);
-  if (existing) return existing;
+  if (existing) {
+    // Migrate: add new fields if missing
+    if (existing.encryptionKey === undefined) {
+      const key = await generateDeviceKey();
+      await db.settings.update(1, {
+        encryptionKey: key,
+        pinHash: null,
+        pinEnabled: false,
+        onboardingCompleted: false,
+      });
+      return { ...existing, encryptionKey: key, pinHash: null, pinEnabled: false, onboardingCompleted: false };
+    }
+    return existing;
+  }
 
+  const key = await generateDeviceKey();
   const defaults: UserSettings = {
     id: 1,
     activeSymptomIds: DEFAULT_ACTIVE_IDS,
@@ -23,6 +38,10 @@ export async function initializeSettings(): Promise<UserSettings> {
     followUpDelayMinutes: 60,
     installedAt: Date.now(),
     lastExportDate: null,
+    pinHash: null,
+    pinEnabled: false,
+    encryptionKey: key,
+    onboardingCompleted: false,
   };
   await db.settings.put(defaults);
   return defaults;

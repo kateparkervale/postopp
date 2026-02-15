@@ -6,12 +6,16 @@ import { db } from "@/db/database";
 import { SYMPTOM_CATALOG, DEFAULT_ACTIVE_IDS } from "@/db/symptoms";
 import { requestNotificationPermission } from "@/lib/notifications";
 import { clearAllLogs } from "@/db/queries";
+import { hashPin } from "@/lib/crypto";
+import Link from "next/link";
 
 export default function SettingsPage() {
   const settings = useLiveQuery(() => db.settings.get(1));
   const [showPicker, setShowPicker] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearText, setClearText] = useState("");
+  const [showPinSetup, setShowPinSetup] = useState(false);
+  const [newPin, setNewPin] = useState("");
 
   const activeIds = settings?.activeSymptomIds ?? DEFAULT_ACTIVE_IDS;
 
@@ -162,6 +166,96 @@ export default function SettingsPage() {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="mb-8">
+        <h2 className="text-lg font-medium text-gray-300 mb-3">Security</h2>
+        <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 mb-3">
+          <div>
+            <div className="font-medium">PIN Lock</div>
+            <div className="text-sm text-gray-400">
+              Require PIN to open app
+            </div>
+          </div>
+          <button
+            onClick={async () => {
+              if (!settings) return;
+              if (settings.pinEnabled) {
+                await db.settings.update(1, { pinEnabled: false, pinHash: null });
+              } else {
+                setShowPinSetup(true);
+              }
+            }}
+            className={`w-14 h-8 rounded-full transition-colors relative focus:outline-none focus:ring-2 focus:ring-white ${
+              settings?.pinEnabled ? "bg-green-500" : "bg-gray-600"
+            }`}
+            role="switch"
+            aria-checked={settings?.pinEnabled ?? false}
+            aria-label="Toggle PIN lock"
+          >
+            <div
+              className={`w-6 h-6 rounded-full bg-white absolute top-1 transition-transform ${
+                settings?.pinEnabled ? "translate-x-7" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
+        {showPinSetup && (
+          <div className="p-4 rounded-lg bg-white/5 mb-3">
+            <p className="text-sm text-gray-400 mb-2">Enter a 4-digit PIN:</p>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={newPin}
+              onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
+              className="w-full px-3 py-2 rounded-lg bg-black/30 border border-gray-600 text-white text-center text-2xl tracking-widest mb-3 focus:outline-none focus:ring-2 focus:ring-white"
+              placeholder="----"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowPinSetup(false); setNewPin(""); }}
+                className="flex-1 py-2 rounded-lg bg-white/10 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (newPin.length !== 4) return;
+                  const hash = await hashPin(newPin);
+                  await db.settings.update(1, { pinEnabled: true, pinHash: hash });
+                  setShowPinSetup(false);
+                  setNewPin("");
+                }}
+                disabled={newPin.length !== 4}
+                className="flex-1 py-2 rounded-lg bg-green-700 text-white text-sm disabled:opacity-40"
+              >
+                Set PIN
+              </button>
+            </div>
+          </div>
+        )}
+        <p className="text-xs text-gray-500">
+          Data is always encrypted with AES-256. PIN adds an extra lock screen.
+        </p>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="text-lg font-medium text-gray-300 mb-3">Legal</h2>
+        <div className="space-y-2">
+          <Link
+            href="/privacy"
+            className="block p-4 rounded-lg bg-white/5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white"
+          >
+            Privacy Policy →
+          </Link>
+          <Link
+            href="/terms"
+            className="block p-4 rounded-lg bg-white/5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white"
+          >
+            Terms of Service →
+          </Link>
+        </div>
       </section>
 
       <section>
