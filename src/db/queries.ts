@@ -98,3 +98,41 @@ export async function getLogById(id: number): Promise<SymptomLog | undefined> {
 export async function clearAllLogs(): Promise<void> {
   await db.logs.clear();
 }
+
+export async function exportLogsToJSON(): Promise<string> {
+  const logs = await getAllLogs();
+  const backup = {
+    app: "PostOpp",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    logCount: logs.length,
+    logs: logs.map(({ id: _id, ...log }) => log),
+  };
+  return JSON.stringify(backup, null, 2);
+}
+
+export async function importLogsFromJSON(jsonString: string): Promise<number> {
+  const backup = JSON.parse(jsonString);
+  if (backup.app !== "PostOpp" || !Array.isArray(backup.logs)) {
+    throw new Error("Invalid PostOpp backup file");
+  }
+  const requiredFields = ["symptomId", "painLevel", "timestamp"];
+  let imported = 0;
+  for (const log of backup.logs) {
+    if (!requiredFields.every((f) => f in log)) continue;
+    const clean: Omit<SymptomLog, "id"> = {
+      symptomId: String(log.symptomId),
+      painLevel: Number(log.painLevel),
+      timestamp: Number(log.timestamp),
+      latitude: log.latitude ?? null,
+      longitude: log.longitude ?? null,
+      locationAccuracy: log.locationAccuracy ?? null,
+      followUpPainLevel: log.followUpPainLevel ?? null,
+      followUpTimestamp: log.followUpTimestamp ?? null,
+      notes: log.notes ?? "",
+    };
+    await createLog(clean);
+    imported++;
+  }
+  return imported;
+}

@@ -5,9 +5,10 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db/database";
 import { SYMPTOM_CATALOG, DEFAULT_ACTIVE_IDS } from "@/db/symptoms";
 import { requestNotificationPermission } from "@/lib/notifications";
-import { clearAllLogs } from "@/db/queries";
+import { clearAllLogs, exportLogsToJSON, importLogsFromJSON } from "@/db/queries";
 import { hashPin } from "@/lib/crypto";
 import Link from "next/link";
+import { useRef } from "react";
 
 export default function SettingsPage() {
   const settings = useLiveQuery(() => db.settings.get(1));
@@ -16,6 +17,8 @@ export default function SettingsPage() {
   const [clearText, setClearText] = useState("");
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [newPin, setNewPin] = useState("");
+  const [importStatus, setImportStatus] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeIds = settings?.activeSymptomIds ?? DEFAULT_ACTIVE_IDS;
 
@@ -260,6 +263,60 @@ export default function SettingsPage() {
 
       <section>
         <h2 className="text-lg font-medium text-gray-300 mb-3">Data</h2>
+        <div className="space-y-2 mb-4">
+          <button
+            onClick={async () => {
+              try {
+                const json = await exportLogsToJSON();
+                const blob = new Blob([json], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `postopp-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              } catch {
+                alert("Export failed. Please try again.");
+              }
+            }}
+            className="w-full py-3 rounded-lg text-sm font-medium bg-white/10 focus:outline-none focus:ring-2 focus:ring-white"
+          >
+            Export Backup (JSON)
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full py-3 rounded-lg text-sm font-medium bg-white/10 focus:outline-none focus:ring-2 focus:ring-white"
+          >
+            Import Backup (JSON)
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              setImportStatus("");
+              try {
+                const text = await file.text();
+                const count = await importLogsFromJSON(text);
+                setImportStatus(`Imported ${count} log${count !== 1 ? "s" : ""} successfully.`);
+              } catch {
+                setImportStatus("Import failed. Make sure this is a valid PostOpp backup file.");
+              }
+              e.target.value = "";
+            }}
+          />
+          {importStatus && (
+            <p className={`text-sm ${importStatus.startsWith("Import failed") ? "text-red-400" : "text-green-400"}`}>
+              {importStatus}
+            </p>
+          )}
+          <p className="text-xs text-gray-500">
+            Backups include all symptom logs with GPS and timestamps. Use this to transfer data between devices.
+          </p>
+        </div>
         {!showClearConfirm ? (
           <button
             onClick={() => setShowClearConfirm(true)}
