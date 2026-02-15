@@ -35,6 +35,14 @@ export interface EncryptedSymptomLog {
   timestamp: number; // kept unencrypted for indexing/sorting
 }
 
+export interface CustomSymptom {
+  id: string;
+  name: string;
+  shortName: string;
+  icon: string;
+  color: string;
+}
+
 export interface UserSettings {
   id: number;
   activeSymptomIds: string[];

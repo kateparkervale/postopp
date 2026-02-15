@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db/database";
-import { SYMPTOM_CATALOG, DEFAULT_ACTIVE_IDS } from "@/db/symptoms";
+import { SYMPTOM_CATALOG, DEFAULT_ACTIVE_IDS, CUSTOM_COLORS, CUSTOM_ICONS, findSymptom } from "@/db/symptoms";
 import { requestNotificationPermission } from "@/lib/notifications";
 import { clearAllLogs, exportLogsToJSON, importLogsFromJSON } from "@/db/queries";
 import { hashPin } from "@/lib/crypto";
 import Link from "next/link";
-import { useRef } from "react";
 
 export default function SettingsPage() {
   const settings = useLiveQuery(() => db.settings.get(1));
+  const customSymptoms = useLiveQuery(() => db.customSymptoms.toArray()) ?? [];
   const [showPicker, setShowPicker] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearText, setClearText] = useState("");
@@ -20,7 +20,14 @@ export default function SettingsPage() {
   const [importStatus, setImportStatus] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Custom symptom creation
+  const [showCustomForm, setShowCustomForm] = useState(false);
+  const [customName, setCustomName] = useState("");
+  const [customIcon, setCustomIcon] = useState(CUSTOM_ICONS[0]);
+  const [customColor, setCustomColor] = useState(CUSTOM_COLORS[0]);
+
   const activeIds = settings?.activeSymptomIds ?? DEFAULT_ACTIVE_IDS;
+  const allSymptoms = [...SYMPTOM_CATALOG, ...customSymptoms.map((c) => ({ ...c, category: "general" as const }))];
 
   async function toggleNotifications() {
     if (!settings) return;
@@ -51,9 +58,30 @@ export default function SettingsPage() {
     await db.settings.update(1, { activeSymptomIds: current });
   }
 
+  async function createCustomSymptom() {
+    const name = customName.trim();
+    if (!name) return;
+    const id = `custom-${Date.now()}`;
+    const shortName = name.length > 12 ? name.slice(0, 12) : name;
+    await db.customSymptoms.put({ id, name, shortName, icon: customIcon, color: customColor });
+    setCustomName("");
+    setShowCustomForm(false);
+  }
+
+  async function deleteCustomSymptom(id: string) {
+    await db.customSymptoms.delete(id);
+    // Remove from active if present
+    if (activeIds.includes(id)) {
+      const updated = activeIds.filter((a) => a !== id);
+      if (updated.length === 0) updated.push(DEFAULT_ACTIVE_IDS[0]);
+      await db.settings.update(1, { activeSymptomIds: updated });
+    }
+  }
+
   async function handleClearData() {
     if (clearText !== "DELETE") return;
     await clearAllLogs();
+    await db.customSymptoms.clear();
     await db.settings.update(1, {
       activeSymptomIds: DEFAULT_ACTIVE_IDS,
       lastExportDate: null,
@@ -77,7 +105,7 @@ export default function SettingsPage() {
         </p>
         <div className="grid grid-cols-2 gap-2 mb-3">
           {activeIds.map((id) => {
-            const s = SYMPTOM_CATALOG.find((s) => s.id === id);
+            const s = findSymptom(id, customSymptoms);
             if (!s) return null;
             return (
               <div
@@ -99,25 +127,108 @@ export default function SettingsPage() {
         </button>
 
         {showPicker && (
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {SYMPTOM_CATALOG.map((s) => {
-              const isActive = activeIds.includes(s.id);
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => toggleSymptom(s.id)}
-                  className="flex items-center gap-2 px-3 py-3 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-white"
-                  style={{
-                    backgroundColor: isActive ? s.color : "rgba(255,255,255,0.05)",
-                    opacity: isActive ? 1 : 0.6,
-                  }}
-                >
-                  <span>{s.icon}</span>
-                  <span className="text-sm font-medium">{s.shortName}</span>
-                  {isActive && <span className="ml-auto">✓</span>}
-                </button>
-              );
-            })}
+          <div className="mt-3">
+            <div className="grid grid-cols-2 gap-2">
+              {allSymptoms.map((s) => {
+                const isActive = activeIds.includes(s.id);
+                const isCustom = s.id.startsWith("custom-");
+                return (
+                  <div key={s.id} className="relative">
+                    <button
+                      onClick={() => toggleSymptom(s.id)}
+                      className="w-full flex items-center gap-2 px-3 py-3 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-white"
+                      style={{
+                        backgroundColor: isActive ? s.color : "rgba(255,255,255,0.05)",
+                        opacity: isActive ? 1 : 0.6,
+                      }}
+                    >
+                      <span>{s.icon}</span>
+                      <span className="text-sm font-medium">{s.shortName}</span>
+                      {isActive && <span className="ml-auto">✓</span>}
+                    </button>
+                    {isCustom && !isActive && (
+                      <button
+                        onClick={() => deleteCustomSymptom(s.id)}
+                        className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-xs flex items-center justify-center"
+                        aria-label={`Delete ${s.shortName}`}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {!showCustomForm ? (
+              <button
+                onClick={() => setShowCustomForm(true)}
+                className="w-full mt-3 py-3 rounded-lg text-sm font-medium bg-white/5 border border-dashed border-gray-600 text-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
+              >
+                + Create Custom Symptom
+              </button>
+            ) : (
+              <div className="mt-3 p-4 rounded-lg bg-white/5 border border-gray-600">
+                <input
+                  type="text"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  placeholder="Symptom name"
+                  maxLength={30}
+                  className="w-full px-3 py-2 rounded-lg bg-black/30 border border-gray-600 text-white mb-3 focus:outline-none focus:ring-2 focus:ring-white"
+                />
+                <div className="mb-3">
+                  <p className="text-xs text-gray-400 mb-2">Pick an icon:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {CUSTOM_ICONS.map((icon) => (
+                      <button
+                        key={icon}
+                        onClick={() => setCustomIcon(icon)}
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${
+                          customIcon === icon ? "bg-white/20 ring-2 ring-white" : "bg-white/5"
+                        }`}
+                      >
+                        {icon}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <p className="text-xs text-gray-400 mb-2">Pick a color:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {CUSTOM_COLORS.map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => setCustomColor(color)}
+                        className={`w-10 h-10 rounded-lg ${
+                          customColor === color ? "ring-2 ring-white" : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 mb-3 p-2 rounded-lg" style={{ backgroundColor: customColor }}>
+                  <span className="text-xl">{customIcon}</span>
+                  <span className="font-medium">{customName || "Preview"}</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setShowCustomForm(false); setCustomName(""); }}
+                    className="flex-1 py-2 rounded-lg bg-white/10 text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={createCustomSymptom}
+                    disabled={!customName.trim()}
+                    className="flex-1 py-2 rounded-lg bg-green-700 text-white text-sm disabled:opacity-40"
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>

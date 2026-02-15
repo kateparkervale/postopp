@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import { db } from "@/db/database";
 import { getSymptomById } from "@/db/symptoms";
 import { getAllLogs } from "@/db/queries";
+import type { CustomSymptom } from "@/types";
 
 export async function exportToPdf(
   startMs?: number,
@@ -13,9 +14,18 @@ export async function exportToPdf(
   const end = endMs ?? now;
 
   const allLogs = await getAllLogs();
+  const customSymptoms: CustomSymptom[] = await db.customSymptoms.toArray();
   const logs = allLogs
     .filter((l) => l.timestamp >= start && l.timestamp <= end)
     .sort((a, b) => a.timestamp - b.timestamp);
+
+  function resolveName(id: string): string {
+    const catalog = getSymptomById(id);
+    if (catalog) return catalog.name;
+    const custom = customSymptoms.find((s) => s.id === id);
+    if (custom) return custom.name;
+    return id;
+  }
 
   if (logs.length === 0) {
     alert("No logs found for this period.");
@@ -116,9 +126,8 @@ export async function exportToPdf(
 
   const summaryRows = Array.from(summaryMap.entries()).map(
     ([id, stats]) => {
-      const symptom = getSymptomById(id);
       return [
-        symptom?.name ?? id,
+        resolveName(id),
         String(stats.count),
         (stats.total / stats.count).toFixed(1),
         String(stats.min),
@@ -149,12 +158,11 @@ export async function exportToPdf(
   doc.text("Detailed Log", 20, 18);
 
   const detailRows = logs.map((log) => {
-    const symptom = getSymptomById(log.symptomId);
     const date = new Date(log.timestamp);
     return [
       formatDate(date),
       formatTime(date),
-      symptom?.name ?? log.symptomId,
+      resolveName(log.symptomId),
       `${log.painLevel}/10`,
       log.followUpPainLevel !== null ? `${log.followUpPainLevel}/10` : "—",
       log.latitude !== null

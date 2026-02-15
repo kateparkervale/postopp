@@ -7,6 +7,7 @@ import { COLORS } from "@/lib/constants";
 const NAV_ITEMS = [
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/history", label: "History", icon: "📋" },
+  { href: "/trends", label: "Trends", icon: "📈" },
   { href: "/settings", label: "Settings", icon: "⚙️" },
 ];
 

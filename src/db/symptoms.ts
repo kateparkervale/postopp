@@ -1,4 +1,5 @@
-import type { Symptom } from "@/types";
+import type { Symptom, CustomSymptom } from "@/types";
+import { db } from "./database";
 
 export const SYMPTOM_CATALOG: Symptom[] = [
   { id: "ptsd", name: "PTSD Episode", shortName: "PTSD", icon: "🧠", color: "#5B4FCF", category: "mental-health" },
@@ -21,6 +22,35 @@ export const SYMPTOM_CATALOG: Symptom[] = [
 
 export const DEFAULT_ACTIVE_IDS = ["ptsd", "migraine", "hip-pain", "sinus"];
 
+export const CUSTOM_COLORS = [
+  "#E05555", "#E07B3A", "#D4A017", "#4CAF50",
+  "#2196F3", "#7B1FA2", "#E91E63", "#00BCD4",
+];
+
+export const CUSTOM_ICONS = [
+  "🩹", "💊", "🩺", "🫁", "🦷", "👁️", "🤒", "🫠",
+  "🥴", "😤", "🤢", "🫨", "🦶", "✋", "❤️‍🩹", "⚠️",
+];
+
+// Resolves both catalog and custom symptoms
 export function getSymptomById(id: string): Symptom | undefined {
   return SYMPTOM_CATALOG.find((s) => s.id === id);
+}
+
+// Async version that also checks custom symptoms in DB
+export async function resolveSymptom(id: string): Promise<Symptom | undefined> {
+  const catalog = SYMPTOM_CATALOG.find((s) => s.id === id);
+  if (catalog) return catalog;
+  const custom = await db.customSymptoms.get(id);
+  if (custom) return { ...custom, category: "general" };
+  return undefined;
+}
+
+// Sync lookup from a preloaded list (used in components)
+export function findSymptom(id: string, customSymptoms: CustomSymptom[]): Symptom | undefined {
+  const catalog = SYMPTOM_CATALOG.find((s) => s.id === id);
+  if (catalog) return catalog;
+  const custom = customSymptoms.find((s) => s.id === id);
+  if (custom) return { ...custom, category: "general" };
+  return undefined;
 }

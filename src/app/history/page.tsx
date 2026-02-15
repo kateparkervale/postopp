@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { getSymptomById } from "@/db/symptoms";
+import { db } from "@/db/database";
+import { findSymptom } from "@/db/symptoms";
 import { getPainColor } from "@/lib/constants";
 import { exportToPdf } from "@/lib/pdf-export";
 import { getAllLogs } from "@/db/queries";
@@ -10,6 +11,7 @@ import type { SymptomLog } from "@/types";
 
 export default function HistoryPage() {
   const [filter, setFilter] = useState<string | null>(null);
+  const customSymptoms = useLiveQuery(() => db.customSymptoms.toArray()) ?? [];
 
   const logs = useLiveQuery(async () => {
     const allLogs = await getAllLogs();
@@ -46,7 +48,7 @@ export default function HistoryPage() {
           All
         </button>
         {activeSymptomIds.map((id) => {
-          const symptom = getSymptomById(id);
+          const symptom = findSymptom(id, customSymptoms);
           if (!symptom) return null;
           return (
             <button
@@ -77,7 +79,7 @@ export default function HistoryPage() {
               {dateStr}
             </div>
             {entries.map((log) => {
-              const symptom = getSymptomById(log.symptomId);
+              const symptom = findSymptom(log.symptomId, customSymptoms);
               if (!symptom) return null;
               return (
                 <div
