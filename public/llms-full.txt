@@ -1,0 +1,90 @@
+# PostOpp — Full Documentation
+
+> Privacy-first post-operative symptom tracking for veterans
+
+## Overview
+
+PostOpp is a free, open-source Progressive Web App (PWA) designed for US veterans to track post-operative symptoms. It prioritizes privacy above all else — every piece of data stays on the user's device. There are no accounts, no servers receiving health data, and no cloud synchronization.
+
+## Architecture
+
+PostOpp is a static Next.js application deployed on Vercel. It uses:
+
+- **Next.js** with static export — no server-side processing
+- **IndexedDB** (via Dexie.js) for local data storage
+- **Web Crypto API** for AES-256-GCM encryption of all stored data
+- **Service Worker** for offline PWA functionality
+- **Tailwind CSS** for styling
+
+## Pages and Routes
+
+- `/` — Home screen with up to 4 customizable symptom buttons for one-tap logging
+- `/log` — Symptom logging flow with pain scale selection
+- `/log/[symptomId]` — Direct logging for a specific symptom
+- `/history` — Chronological log of all symptom entries with filtering and PDF export
+- `/trends` — Visual trend charts showing pain levels over 7-day, 30-day, and 90-day periods
+- `/followup` — Follow-up pain rating screen triggered by reminder notifications
+- `/settings` — Symptom customization, notification preferences, PIN lock, data import/export, and data clearing
+- `/privacy` — Privacy policy
+- `/terms` — Terms of service with medical disclaimer
+
+## Symptom Tracking
+
+PostOpp includes 16 built-in symptom types organized by category:
+
+### Mental Health
+- PTSD Episode, Anxiety, Depression, Insomnia
+
+### Neurological
+- Migraine, Tinnitus, Dizziness, Headache
+
+### Musculoskeletal
+- Hip Pain, Back Pain, Knee Pain, Shoulder Pain, Neck Pain
+
+### Other
+- Sinus Infection (respiratory), GI Issues (gastrointestinal), Fatigue (general)
+
+Users can also create custom symptoms with their own name, icon, and color. The home screen displays up to 4 active symptoms for one-tap logging.
+
+## Logging Flow
+
+1. User taps a symptom button on the home screen
+2. User rates pain on a 1-10 scale
+3. GPS location is optionally captured
+4. Entry is encrypted and stored locally
+5. If notifications are enabled, a follow-up reminder is scheduled (30 min, 1 hr, or 2 hr)
+6. Follow-up screen lets the user rate how the symptom has changed
+
+## Data Security
+
+- **Encryption**: All symptom data is encrypted with AES-256-GCM via the Web Crypto API before storage
+- **PIN Lock**: Optional 4-digit PIN adds a lock screen on app launch
+- **No Transmission**: Data never leaves the device unless the user explicitly exports
+- **No Analytics**: Zero tracking, zero telemetry, zero third-party scripts
+- **Local Only**: IndexedDB storage — clearing browser data removes all PostOpp data
+
+## Export Options
+
+- **PDF Export**: Generates a formatted symptom report with timestamps, pain levels, and GPS coordinates. Marked as confidential.
+- **JSON Backup**: Full data export for device-to-device transfer or personal archival.
+- **JSON Import**: Restore from a previous backup file.
+
+## Medical Disclaimer
+
+PostOpp is NOT a medical device. It is not FDA-approved and does not diagnose conditions, provide medical advice, or replace consultation with healthcare professionals. It is a personal record-keeping tool only. In a medical emergency, call 911. For the Veterans Crisis Line, dial 988 and press 1.
+
+## Privacy Summary
+
+- No user accounts or personal identifiers collected
+- No cloud storage or synchronization
+- No analytics, tracking, or third-party services
+- All data encrypted locally with AES-256-GCM
+- Data leaves the device only when the user chooses to export
+- GPS location is optional and stored only on-device
+- Hosted on Vercel as static files — Vercel does not receive health data
+
+## Links
+
+- Website: https://postopp.vercel.app
+- Privacy Policy: https://postopp.vercel.app/privacy
+- Terms of Service: https://postopp.vercel.app/terms

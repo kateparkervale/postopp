@@ -45,3 +45,7 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Security hardening (auto-added 2026-03-25)
+credentials.json
+serviceAccountKey.json

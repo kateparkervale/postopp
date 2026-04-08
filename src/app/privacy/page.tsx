@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "PostOpp privacy policy — all data stays on your device. No accounts, no cloud storage, no analytics, no tracking.",
+};
+
 export default function PrivacyPage() {
   return (
     <div className="min-h-[calc(100dvh-4rem)] p-4 max-w-2xl mx-auto">

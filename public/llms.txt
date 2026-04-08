@@ -1,0 +1,31 @@
+# PostOpp
+
+> Privacy-first post-operative symptom tracking for veterans
+
+PostOpp is a free, open-source Progressive Web App (PWA) that helps veterans track post-operative symptoms. All data stays on the user's device — no accounts, no servers, no cloud storage.
+
+## Key Features
+
+- One-tap symptom logging with customizable pain scale (1-10)
+- 16 built-in symptom types plus custom symptom creation
+- Follow-up reminders to track how symptoms change over time
+- Trend visualization with weekly, monthly, and quarterly views
+- PDF and JSON export for sharing with healthcare providers
+- Optional GPS tagging to identify environmental triggers
+- PIN lock and AES-256-GCM encryption for data security
+- Works offline as a PWA — no internet required after install
+
+## Privacy
+
+PostOpp collects zero analytics. All symptom data is stored locally in the browser's IndexedDB with AES-256-GCM encryption. No data ever leaves the device unless the user explicitly exports it. There are no user accounts, no tracking, and no third-party services.
+
+## Who It's For
+
+US veterans tracking post-operative symptoms for personal records or to share with their VA medical team. PostOpp is not a medical device and does not provide diagnoses or medical advice.
+
+## Links
+
+- Website: https://postopp.vercel.app
+- Privacy Policy: https://postopp.vercel.app/privacy
+- Terms of Service: https://postopp.vercel.app/terms
+- Full documentation: https://postopp.vercel.app/llms-full.txt

@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description:
+    "PostOpp terms of service — a free symptom tracking tool for veterans. Not a medical device. All data owned by the user.",
+};
+
 export default function TermsPage() {
   return (
     <div className="min-h-[calc(100dvh-4rem)] p-4 max-w-2xl mx-auto">
